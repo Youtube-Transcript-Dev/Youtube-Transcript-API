@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://youtubetranscript.dev/logo.svg" alt="YouTubeTranscript.dev" width="80" />
+  <img src="https://www.youtubetranscript.dev/logo.svg" alt="YouTubeTranscript.dev" width="80" />
 </p>
 
 <h1 align="center">YouTube Transcript API</h1>
@@ -9,19 +9,19 @@
 </p>
 
 <p align="center">
-  <a href="https://youtubetranscript.dev">Website</a> •
-  <a href="https://youtubetranscript.dev/api-docs">Full API Docs</a> •
-  <a href="https://youtubetranscript.dev/pricing">Pricing</a> •
+  <a href="https://www.youtubetranscript.dev">Website</a> •
+  <a href="https://www.youtubetranscript.dev/api-docs">Full API Docs</a> •
+  <a href="https://www.youtubetranscript.dev/pricing">Pricing</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#examples">Examples</a>
 </p>
 
 <p align="center">
-  <a href="https://youtubetranscript.dev"><img src="https://img.shields.io/badge/API-v2-brightgreen" alt="API Version" /></a>
-  <a href="https://youtubetranscript.dev"><img src="https://img.shields.io/badge/uptime-99.9%25-brightgreen" alt="Uptime" /></a>
-  <a href="https://youtubetranscript.dev"><img src="https://img.shields.io/badge/response_time-<200ms-blue" alt="Response Time" /></a>
-  <a href="https://youtubetranscript.dev/pricing"><img src="https://img.shields.io/badge/free_tier-available-orange" alt="Free Tier" /></a>
-  <a href="https://youtubetranscript.dev"><img src="https://img.shields.io/badge/languages-100+-purple" alt="Languages" /></a>
+  <a href="https://www.youtubetranscript.dev"><img src="https://img.shields.io/badge/API-v2-brightgreen" alt="API Version" /></a>
+  <a href="https://www.youtubetranscript.dev"><img src="https://img.shields.io/badge/uptime-99.9%25-brightgreen" alt="Uptime" /></a>
+  <a href="https://www.youtubetranscript.dev"><img src="https://img.shields.io/badge/response_time-<200ms-blue" alt="Response Time" /></a>
+  <a href="https://www.youtubetranscript.dev/pricing"><img src="https://img.shields.io/badge/free_tier-available-orange" alt="Free Tier" /></a>
+  <a href="https://www.youtubetranscript.dev"><img src="https://img.shields.io/badge/languages-100+-purple" alt="Languages" /></a>
   <a href="https://www.npmjs.com/package/youtube-audio-transcript-api"><img src="https://img.shields.io/npm/v/youtube-audio-transcript-api?label=npm" alt="npm" /></a>
 </p>
 
@@ -40,7 +40,7 @@ Most YouTube transcript tools break when videos don't have captions. **We don't.
 - 💰 **Predictable pricing** — 1 credit per transcript, no surprises
 - 🔒 **Production ready** — 99.9% uptime SLA
 
-**→ [Get your free API key](https://youtubetranscript.dev)**
+**→ [Get your free API key](https://www.youtubetranscript.dev)**
 
 ---
 
@@ -78,7 +78,7 @@ V2 is the streamlined, user-owned transcript model. It prioritizes fast cache hi
 
 ### 1. Get Your API Key
 
-Sign up at [youtubetranscript.dev](https://youtubetranscript.dev) and grab your API key from the [Dashboard](https://youtubetranscript.dev/dashboard).
+Sign up at [youtubetranscript.dev](https://www.youtubetranscript.dev) and grab your API key from the [Dashboard](https://www.youtubetranscript.dev/dashboard).
 
 ### 2. Extract a Transcript
 
@@ -172,7 +172,7 @@ Returns immediately with `status: "processing"`. Results are delivered to your w
 | 429 | `rate_limit_exceeded` | Too many requests, check `Retry-After` |
 | 500 | `internal_error` | Server error, retry with backoff |
 
-**→ [Full API Documentation & OpenAPI Spec](https://youtubetranscript.dev/api-docs)**
+**→ [Full API Documentation & OpenAPI Spec](https://www.youtubetranscript.dev/api-docs)**
 
 ---
 
@@ -312,7 +312,7 @@ The open-source `youtube-transcript-api` Python package is a great tool, but it 
 
 ## Issues & Feedback
 
-This is the public repository for [YouTubeTranscript.dev](https://youtubetranscript.dev). The API is proprietary, but we use this repo to collect feedback from our developer community.
+This is the public repository for [YouTubeTranscript.dev](https://www.youtubetranscript.dev). The API is proprietary, but we use this repo to collect feedback from our developer community.
 
 **How you can help:**
 
@@ -325,11 +325,11 @@ This is the public repository for [YouTubeTranscript.dev](https://youtubetranscr
 
 ## Links
 
-- 🌐 [Website](https://youtubetranscript.dev)
+- 🌐 [Website](https://www.youtubetranscript.dev)
 - 📦 [npm SDK](https://www.npmjs.com/package/youtube-audio-transcript-api)
-- 📖 [API Documentation](https://youtubetranscript.dev/api-docs)
-- 📐 [OpenAPI Spec (YAML)](https://youtubetranscript.dev/api-docs#openapi)
-- 💰 [Pricing](https://youtubetranscript.dev/pricing)
+- 📖 [API Documentation](https://www.youtubetranscript.dev/api-docs)
+- 📐 [OpenAPI Spec (YAML)](https://www.youtubetranscript.dev/api-docs#openapi)
+- 💰 [Pricing](https://www.youtubetranscript.dev/pricing)
 - 📧 [support@youtubetranscript.dev](mailto:support@youtubetranscript.dev)
 - 💼 [LinkedIn](https://www.linkedin.com/company/youtube-transcript-dev)
 
@@ -339,12 +339,12 @@ This is the public repository for [YouTubeTranscript.dev](https://youtubetranscr
 
 The code examples and documentation in this repository are licensed under the [MIT License](./LICENSE).
 
-The YouTubeTranscript.dev API is a proprietary service. See [Terms of Service](https://youtubetranscript.dev/terms).
+The YouTubeTranscript.dev API is a proprietary service. See [Terms of Service](https://www.youtubetranscript.dev/terms).
 
 ---
 
 <p align="center">
-  <strong>Built with ❤️ by <a href="https://youtubetranscript.dev">YouTubeTranscript.dev</a></strong>
+  <strong>Built with ❤️ by <a href="https://www.youtubetranscript.dev">YouTubeTranscript.dev</a></strong>
   <br />
   <sub>Trusted by 1,000+ developers worldwide</sub>
 </p>
