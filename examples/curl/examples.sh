@@ -7,7 +7,7 @@
 # Replace YOUR_API_KEY with your actual key
 
 API_KEY="YOUR_API_KEY"
-BASE_URL="https://youtubetranscript.dev/api/v2"
+BASE_URL="https://www.youtubetranscript.dev/api/v2"
 
 # ------------------------------------------------
 # 1. Basic Transcript Extraction

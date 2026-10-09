@@ -83,7 +83,7 @@ Sign up at [youtubetranscript.dev](https://www.youtubetranscript.dev) and grab y
 ### 2. Extract a Transcript
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
@@ -92,7 +92,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
 ### 3. With Options
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -105,7 +105,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
 ### 4. Batch Request (up to 100 videos)
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/batch \
+curl -X POST https://www.youtubetranscript.dev/api/v2/batch \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -120,7 +120,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/batch \
 ### 5. ASR with Webhook (videos without captions)
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -227,7 +227,7 @@ API_KEY = "your_api_key"
 
 # Single video
 response = requests.post(
-    "https://youtubetranscript.dev/api/v2/transcribe",
+    "https://www.youtubetranscript.dev/api/v2/transcribe",
     headers={
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
@@ -243,7 +243,7 @@ for segment in data["data"]["transcript"]:
 ### JavaScript / Node.js (without SDK)
 
 ```javascript
-const response = await fetch("https://youtubetranscript.dev/api/v2/transcribe", {
+const response = await fetch("https://www.youtubetranscript.dev/api/v2/transcribe", {
   method: "POST",
   headers: {
     "Authorization": `Bearer ${API_KEY}`,

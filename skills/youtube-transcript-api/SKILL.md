@@ -23,7 +23,7 @@ Use this skill when the user wants to extract transcripts from YouTube videos, t
 
 ## API Overview
 
-**Base URL:** `https://youtubetranscript.dev/api/v2`
+**Base URL:** `https://www.youtubetranscript.dev/api/v2`
 
 **Authentication:** Bearer token via `Authorization: Bearer YOUR_API_KEY`
 
@@ -67,7 +67,7 @@ import requests
 API_KEY = "your_api_key"
 
 response = requests.post(
-    "https://youtubetranscript.dev/api/v2/transcribe",
+    "https://www.youtubetranscript.dev/api/v2/transcribe",
     headers={
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
@@ -83,7 +83,7 @@ for segment in data["data"]["transcript"]:
 ### Basic Transcript Extraction (JavaScript/Node.js)
 
 ```javascript
-const response = await fetch("https://youtubetranscript.dev/api/v2/transcribe", {
+const response = await fetch("https://www.youtubetranscript.dev/api/v2/transcribe", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${API_KEY}`,
@@ -125,7 +125,7 @@ const batch = await yt.batch({
 ### Basic Transcript Extraction (cURL)
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video": "dQw4w9WgXcQ"}'
@@ -134,7 +134,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
 ### Batch Processing (up to 100 videos)
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/batch \
+curl -X POST https://www.youtubetranscript.dev/api/v2/batch \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video_ids": ["dQw4w9WgXcQ", "jNQXAC9IVRw", "9bZkp7q19f0"]}'
@@ -145,7 +145,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/batch \
 Add `"language": "es"` (or any ISO 639-1 code) to get the transcript translated:
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video": "dQw4w9WgXcQ", "language": "es"}'
@@ -156,7 +156,7 @@ curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
 For videos that don't have captions, use ASR with a webhook:
 
 ```bash
-curl -X POST https://youtubetranscript.dev/api/v2/transcribe \
+curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video": "VIDEO_ID", "source": "asr", "webhook_url": "https://yoursite.com/webhook"}'

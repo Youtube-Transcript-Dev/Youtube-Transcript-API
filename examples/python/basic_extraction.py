@@ -13,7 +13,7 @@ import requests
 import sys
 
 API_KEY = "your_api_key_here"  # Get yours at https://youtubetranscript.dev
-BASE_URL = "https://youtubetranscript.dev/api/v2"
+BASE_URL = "https://www.youtubetranscript.dev/api/v2"
 
 
 def extract_transcript(video: str, language: str = None, format: str = None) -> dict:
