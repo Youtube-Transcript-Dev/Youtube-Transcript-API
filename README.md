@@ -13,7 +13,8 @@
   <a href="https://www.youtubetranscript.dev/api-docs">Full API Docs</a> •
   <a href="https://www.youtubetranscript.dev/pricing">Pricing</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#examples">Examples</a>
+  <a href="#examples">Examples</a> •
+  <a href="#-free-ai-skills-built-on-this-api">Free AI Skills</a>
 </p>
 
 <p align="center">
@@ -291,6 +292,20 @@ Transcribe lectures, courses, and tutorials. Make video content searchable and a
 
 ### ♿ Accessibility
 Generate accurate captions and subtitles for videos that don't have them, in 100+ languages.
+
+---
+
+## 🎁 Free AI skills built on this API
+
+No coding needed. These open-source Claude skills turn any YouTube video into something you can present, study, or share:
+
+| | Skill | What it makes |
+|---|---|---|
+| 📊 | [**youtube-to-case-study**](https://github.com/tstfully/youtube-to-case-study) | A business, marketing, UX, or growth case-study slideshow |
+| 🎓 | [**youtube-to-course**](https://github.com/tstfully/youtube-to-course) | An interactive course with quizzes and flashcards |
+| 💬 | [**youtube-to-ai-chat**](https://github.com/tstfully/youtube-to-ai-chat) | Answers cited to the exact second, plus a shareable chat page |
+
+Install any of them in Claude Code with one line, e.g. `/plugin install youtube-to-course --marketplace tstfully/youtube-to-course`. More at [youtubetranscript.dev/open-source](https://www.youtubetranscript.dev/open-source).
 
 ---
 
