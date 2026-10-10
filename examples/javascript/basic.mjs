@@ -12,7 +12,7 @@
  */
 
 const API_KEY = "your_api_key_here"; // Get yours at https://youtubetranscript.dev
-const BASE_URL = "https://youtubetranscript.dev/api/v2";
+const BASE_URL = "https://www.youtubetranscript.dev/api/v2";
 
 async function transcribe(video, options = {}) {
   const body = { video, ...options };

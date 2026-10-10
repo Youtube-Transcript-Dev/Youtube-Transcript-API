@@ -15,7 +15,7 @@ import time
 import sys
 
 API_KEY = "your_api_key_here"  # Get yours at https://youtubetranscript.dev
-BASE_URL = "https://youtubetranscript.dev/api/v2"
+BASE_URL = "https://www.youtubetranscript.dev/api/v2"
 
 
 def transcribe_audio(video: str, webhook_url: str = None) -> dict:
