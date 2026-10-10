@@ -36,7 +36,7 @@ Most YouTube transcript tools break when videos don't have captions. **We don't.
 - 🎙 **Audio transcription (ASR)** — No captions? We transcribe from the audio track
 - 🌍 **100+ languages** — Multilingual support with on-demand translation
 - 📤 **Multiple formats** — Timestamps, paragraphs, word-level output
-- 📚 **Batch processing** — Up to 100 videos per request
+- 📚 **Batch processing** — Up to 3,000 videos per request (depends on plan)
 - 🔔 **Webhooks** — Async processing with delivery to your endpoint
 - 💰 **Predictable pricing** — 1 credit per transcript, no surprises
 - 🔒 **Production ready** — 99.9% uptime SLA
@@ -61,7 +61,7 @@ V2 is the streamlined, user-owned transcript model. It prioritizes fast cache hi
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/v2/transcribe` | Extract transcript from a single video |
-| `POST` | `/api/v2/batch` | Extract transcripts from up to 100 videos |
+| `POST` | `/api/v2/batch` | Extract transcripts from many videos (Free 10, Basic 500, Pro 1,500, Business 3,000) |
 | `GET` | `/api/v2/jobs/{job_id}` | Check status of an ASR job |
 | `GET` | `/api/v2/batch/{batch_id}` | Check status of a batch request |
 
@@ -90,7 +90,7 @@ curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -d '{"video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 ```
 
-### 3. With Options
+### 3. With Timestamps and a Language
 
 ```bash
 curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
@@ -99,11 +99,42 @@ curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -d '{
     "video": "dQw4w9WgXcQ",
     "language": "es",
-    "format": "timestamp"
+    "format": {"timestamp": true}
   }'
 ```
 
-### 4. Batch Request (up to 100 videos)
+### What you get back
+
+```json
+{
+  "request_id": "80230632-…",
+  "status": "completed",
+  "data": {
+    "video_id": "UF8uR6Z6KLc",
+    "video_title": "Steve Jobs' 2005 Stanford Commencement Address",
+    "transcript": {
+      "text": "This program is brought to you by Stanford University. …",
+      "language": "en",
+      "source": "manual",
+      "segments": [
+        { "text": "This program is brought to you by Stanford University.", "start": 7470, "end": 10369 }
+      ]
+    }
+  },
+  "credits_used": 1
+}
+```
+
+- The transcript lives at `data.transcript`. It's an object, not a list.
+- `data.transcript.text` is the full text, always included.
+- `data.transcript.segments` is only included when you send `"format": {"timestamp": true}`.
+- ⚠️ **`start` and `end` are in milliseconds.** Divide by 1000 for seconds (`7470` → 0:07).
+- `transcript.language` is the language you actually got. `transcript.source` is `manual`, `auto`, or `asr`.
+- `status` is `completed`, `processing` (async ASR: poll `job_id`), `failed`, or `requires_asr_confirmation`.
+
+### 4. Batch Request
+
+Up to 10 videos per request on Free, 500 on Basic, 1,500 on Pro, and 3,000 on Business.
 
 ```bash
 curl -X POST https://www.youtubetranscript.dev/api/v2/batch \
@@ -126,12 +157,12 @@ curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Content-Type: application/json" \
   -d '{
     "video": "VIDEO_ID",
-    "source": "asr",
+    "mode": "speech_to_text_only",
     "webhook_url": "https://yoursite.com/webhook"
   }'
 ```
 
-Returns immediately with `status: "processing"`. Results are delivered to your webhook when ready.
+Returns immediately with `status: "processing"` and a `job_id`. Results are POSTed to your webhook when ready. No webhook? Leave out `webhook_url` and poll `GET /api/v2/jobs/{job_id}`.
 
 ---
 
@@ -149,19 +180,23 @@ Returns immediately with `status: "processing"`. Results are delivered to your w
 | Field | Required | Description |
 |-------|----------|-------------|
 | `video` | Yes (single) | YouTube URL or 11-character video ID |
-| `video_ids` | Yes (batch) | Array of IDs or URLs. Up to 100 per request |
-| `language` | No | ISO 639-1 code (e.g., `"es"`, `"fr"`). Omit to get best available without translation |
-| `source` | No | `auto` (default), `manual`, or `asr` |
-| `format` | No | `timestamp`, `paragraphs`, or `words` |
-| `webhook_url` | No | URL for async delivery. **Required** for `source="asr"` |
+| `video_ids` | Yes (batch) | Array of IDs or URLs. Per request: Free 10 · Basic 500 · Pro 1,500 · Business 3,000 |
+| `language` | No | ISO 639-1 code (e.g., `"es"`, `"fr"`). Omit to get the original language. Check `transcript.language` for what you got |
+| `format` | No | Object of switches: `{"timestamp": true, "paragraphs": true, "words": true}`. `timestamp` adds `segments` |
+| `mode` | No | `auto` (captions, then ASR if none), `captions_only`, `human_captions_only`, or `speech_to_text_only` (always ASR). When omitted, your account default from the dashboard applies |
+| `webhook_url` | No | URL that receives ASR results. Optional with `mode`: you can poll `GET /jobs/{job_id}` instead |
+| `source` / `allow_asr` | No | Legacy, still supported. Use `mode` instead (don't combine them) |
 
 ### Webhook Behavior
 
 - Requests with `webhook_url` return immediately with `status: "processing"`
-- Batch requests return cached results immediately and queue only the missing items
+- Batch requests return cached results immediately and queue only the missing items. Poll `GET /api/v2/batch/{batch_id}` until `status` is no longer `processing`
+- Each batch item in `results` has the same `data` shape as a single `/transcribe` response
 - Your webhook receives the final results when processing completes
 
 ### Error Codes
+
+Errors return JSON like `{"error": "invalid_api_key", "message": "…"}`.
 
 | HTTP Status | Error Code | Description |
 |-------------|------------|-------------|
@@ -203,7 +238,7 @@ const translated = await yt.transcribe({
   format: { timestamp: true },
 });
 
-// Batch — up to 100 videos
+// Batch — many videos in one request
 const batch = await yt.batch({
   video_ids: ["dQw4w9WgXcQ", "jNQXAC9IVRw", "9bZkp7q19f0"],
 });
@@ -233,12 +268,13 @@ response = requests.post(
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
     },
-    json={"video": "dQw4w9WgXcQ"}
+    json={"video": "dQw4w9WgXcQ", "format": {"timestamp": True}},
 )
 
-data = response.json()
-for segment in data["data"]["transcript"]:
-    print(f"[{segment['start']:.1f}s] {segment['text']}")
+transcript = response.json()["data"]["transcript"]
+for segment in transcript["segments"]:
+    seconds = segment["start"] / 1000  # start is in milliseconds
+    print(f"[{seconds:.1f}s] {segment['text']}")
 ```
 
 ### JavaScript / Node.js (without SDK)
@@ -264,10 +300,10 @@ Check the [`/examples`](./examples) directory for complete, runnable scripts:
 | Example | Description |
 |---------|-------------|
 | [Basic Extraction](./examples/python/basic_extraction.py) | Extract a single video transcript |
-| [Batch Processing](./examples/python/batch_processing.py) | Process up to 100 videos at once |
+| [Batch Processing](./examples/python/batch_processing.py) | Process many videos in one request |
 | [ASR + Webhook](./examples/python/asr_webhook.py) | Transcribe videos without captions |
 | [Translation](./examples/python/translation.py) | Get transcripts in any language |
-| [Export Formats](./examples/python/export_formats.py) | Timestamps, paragraphs, word-level |
+| [Export Formats](./examples/python/export_formats.py) | Timestamps, paragraphs, plain text and SRT export |
 | [Node.js Basic](./examples/javascript/basic.mjs) | Node.js extraction example |
 | [cURL Examples](./examples/curl/examples.sh) | Ready-to-run cURL commands |
 
@@ -317,7 +353,7 @@ The open-source `youtube-transcript-api` Python package is a great tool, but it 
 |---|---|---|
 | Videos without captions | ✅ ASR audio transcription | ❌ Fails |
 | Translation | ✅ On-demand, any language | ⚠️ Limited to YouTube's translations |
-| Batch processing | ✅ Up to 100 videos/request | ❌ One at a time |
+| Batch processing | ✅ Up to 3,000 videos/request | ❌ One at a time |
 | Caching | ✅ Owned transcripts, 0 credits on re-fetch | ❌ Fetches every time |
 | Webhooks | ✅ Async delivery | ❌ Not available |
 | Infrastructure | ✅ Managed API, 99.9% uptime | ❌ Self-hosted, you handle rate limits |

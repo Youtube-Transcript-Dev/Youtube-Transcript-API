@@ -1,8 +1,9 @@
 """
-ASR Audio Transcription with Webhook (V2 API)
-================================================
+ASR Audio Transcription (V2 API)
+==================================
 Transcribe YouTube videos that don't have captions using AI speech recognition.
-Results are delivered asynchronously to your webhook URL.
+This runs in the background: get the result by polling the job, or have it
+POSTed to your webhook URL.
 
 Get your free API key at: https://youtubetranscript.dev
 
@@ -22,18 +23,19 @@ def transcribe_audio(video: str, webhook_url: str = None) -> dict:
     """
     Transcribe a YouTube video from its audio track.
 
-    Uses ASR (Automatic Speech Recognition) for videos without captions.
-    This is an async operation — results are delivered via webhook or polling.
+    mode="speech_to_text_only" always uses ASR. Use mode="auto" instead to
+    try captions first and fall back to ASR only when there are none.
 
     Cost: 1 credit per 90 seconds of audio.
 
     Args:
         video: YouTube URL or 11-character video ID
-        webhook_url: URL to receive results when processing completes
+        webhook_url: Optional URL to receive results when processing completes
     """
     payload = {
         "video": video,
-        "source": "asr",
+        "mode": "speech_to_text_only",
+        "format": {"timestamp": True},
     }
     if webhook_url:
         payload["webhook_url"] = webhook_url
@@ -60,47 +62,53 @@ def check_job_status(job_id: str) -> dict:
     return response.json()
 
 
+def print_transcript(data: dict):
+    transcript = data["transcript"]
+    print(f"Detected language: {transcript.get('language', 'unknown')}")
+    print(f"Segments: {len(transcript.get('segments') or [])}")
+    print("-" * 50)
+    print(f"\n{transcript['text'][:500]}...")
+
+
 def main():
     video = sys.argv[1] if len(sys.argv) > 1 else "dQw4w9WgXcQ"
 
     # Option 1: With webhook (recommended for production)
     # result = transcribe_audio(video, webhook_url="https://yoursite.com/webhook")
-    # print(f"Job submitted! Results will be delivered to your webhook.")
 
     # Option 2: Poll for results (good for scripts)
     print(f"🎙 Submitting ASR transcription for: {video}")
     print("This may take 2-20 minutes depending on video length...\n")
 
     result = transcribe_audio(video)
-    job_id = result.get("job_id")
 
-    if not job_id:
-        # Transcript was already cached
-        print("Transcript already available (cached)!")
+    if result["status"] == "completed":
+        # Already transcribed before: no waiting
+        print("Transcript already available!")
+        print_transcript(result["data"])
         return
 
+    if result["status"] == "requires_asr_confirmation":
+        print(f"Needs confirmation: estimated {result.get('estimated_credits')} credits.")
+        print(result.get("suggestion", ""))
+        return
+
+    job_id = result["job_id"]
     print(f"Job ID: {job_id}")
     print(f"Status: {result['status']}")
 
-    # Poll until complete
     while True:
         time.sleep(10)
-        status = check_job_status(job_id)
-        print(f"  Status: {status['status']}")
+        job = check_job_status(job_id)
+        print(f"  Status: {job['status']}")
 
-        if status["status"] == "completed":
-            data = status["data"]
-            print(f"\n✅ Transcription complete!")
-            print(f"Detected language: {data.get('detected_language', 'unknown')}")
-            print(f"Segments: {len(data['transcript'])}")
-            print("-" * 50)
-
-            full_text = " ".join(seg["text"] for seg in data["transcript"])
-            print(f"\n{full_text[:500]}...")
+        if job["status"] == "completed":
+            print("\n✅ Transcription complete!")
+            print_transcript(job["data"])
             break
 
-        elif status["status"] == "failed":
-            print(f"\n❌ Transcription failed: {status.get('error', 'Unknown error')}")
+        if job["status"] == "failed":
+            print(f"\n❌ Transcription failed: {job.get('error', 'Unknown error')}")
             break
 
 

@@ -1,7 +1,7 @@
 """
 Basic YouTube Transcript Extraction (V2 API)
 ==============================================
-Extract a transcript from any YouTube video.
+Extract a timestamped transcript from any YouTube video.
 
 Get your free API key at: https://youtubetranscript.dev
 
@@ -16,20 +16,20 @@ API_KEY = "your_api_key_here"  # Get yours at https://youtubetranscript.dev
 BASE_URL = "https://www.youtubetranscript.dev/api/v2"
 
 
-def extract_transcript(video: str, language: str = None, format: str = None) -> dict:
+def extract_transcript(video: str, language: str = None) -> dict:
     """
-    Extract transcript from a YouTube video.
+    Extract a transcript from a YouTube video.
 
     Args:
         video: YouTube URL or 11-character video ID
         language: Optional ISO 639-1 code (e.g., "es", "fr"). Omit for best available.
-        format: Optional - "timestamp", "paragraphs", or "words"
     """
-    payload = {"video": video}
+    payload = {
+        "video": video,
+        "format": {"timestamp": True},  # include timed segments
+    }
     if language:
         payload["language"] = language
-    if format:
-        payload["format"] = format
 
     response = requests.post(
         f"{BASE_URL}/transcribe",
@@ -43,9 +43,9 @@ def extract_transcript(video: str, language: str = None, format: str = None) -> 
     return response.json()
 
 
-def format_timestamp(seconds: float) -> str:
-    """Convert seconds to MM:SS format."""
-    mins, secs = divmod(int(seconds), 60)
+def format_timestamp(ms: int) -> str:
+    """Convert milliseconds to MM:SS format."""
+    mins, secs = divmod(ms // 1000, 60)
     return f"{mins:02d}:{secs:02d}"
 
 
@@ -56,18 +56,20 @@ def main():
 
     result = extract_transcript(video)
 
-    if result.get("success"):
+    if result.get("status") == "completed":
         data = result["data"]
-        print(f"Title: {data['title']}")
-        print(f"Language: {data.get('language', 'N/A')}")
-        print(f"Segments: {len(data['transcript'])}")
+        transcript = data["transcript"]
+        segments = transcript.get("segments") or []
+        print(f"Title: {data.get('video_title')}")
+        print(f"Language: {transcript.get('language', 'N/A')} ({transcript.get('source')})")
+        print(f"Segments: {len(segments)}")
         print("-" * 50)
 
-        for segment in data["transcript"]:
+        for segment in segments:
             timestamp = format_timestamp(segment["start"])
             print(f"[{timestamp}] {segment['text']}")
     else:
-        print(f"Error: {result.get('error', 'Unknown error')}")
+        print(f"Status: {result.get('status')} {result.get('error', '')}")
 
 
 if __name__ == "__main__":

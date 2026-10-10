@@ -17,6 +17,8 @@ curl -s -X POST "$BASE_URL/transcribe" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"video": "dQw4w9WgXcQ"}' | python3 -m json.tool
+# Response: {"status": "completed", "data": {"video_id", "video_title",
+#   "transcript": {"text", "language", "source"}}, "credits_used": ...}
 
 # ------------------------------------------------
 # 2. With Language Translation
@@ -28,25 +30,27 @@ curl -s -X POST "$BASE_URL/transcribe" \
   -d '{"video": "dQw4w9WgXcQ", "language": "es"}' | python3 -m json.tool
 
 # ------------------------------------------------
-# 3. With Format Options
+# 3. With Timestamps
 # ------------------------------------------------
+# Adds data.transcript.segments: [{"text", "start", "end"}]
+# start and end are in milliseconds.
 echo -e "\n=== With Timestamps ==="
 curl -s -X POST "$BASE_URL/transcribe" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"video": "dQw4w9WgXcQ", "format": "timestamp"}' | python3 -m json.tool
+  -d '{"video": "dQw4w9WgXcQ", "format": {"timestamp": true}}' | python3 -m json.tool
 
 # ------------------------------------------------
-# 4. Manual Captions Only
+# 4. Human-Made Captions Only (never uses ASR)
 # ------------------------------------------------
 echo -e "\n=== Manual Captions Only ==="
 curl -s -X POST "$BASE_URL/transcribe" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"video": "dQw4w9WgXcQ", "source": "manual"}' | python3 -m json.tool
+  -d '{"video": "dQw4w9WgXcQ", "mode": "human_captions_only"}' | python3 -m json.tool
 
 # ------------------------------------------------
-# 5. Batch Request (up to 100 videos)
+# 5. Batch Request (Free 10 · Basic 500 · Pro 1,500 · Business 3,000 videos)
 # ------------------------------------------------
 echo -e "\n=== Batch Request ==="
 curl -s -X POST "$BASE_URL/batch" \
@@ -61,15 +65,17 @@ curl -s -X POST "$BASE_URL/batch" \
   }' | python3 -m json.tool
 
 # ------------------------------------------------
-# 6. ASR Transcription with Webhook
+# 6. ASR Transcription (videos without captions)
 # ------------------------------------------------
+# Returns status "processing" and a job_id. Poll /jobs/{job_id} (step 7),
+# or add webhook_url to have the result POSTed to you.
 echo -e "\n=== ASR with Webhook ==="
 curl -s -X POST "$BASE_URL/transcribe" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "video": "VIDEO_ID",
-    "source": "asr",
+    "mode": "speech_to_text_only",
     "webhook_url": "https://yoursite.com/webhook"
   }' | python3 -m json.tool
 

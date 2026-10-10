@@ -1,6 +1,6 @@
 ---
 name: youtube-transcript-api
-description: Extract, transcribe, and translate YouTube video transcripts using the YouTubeTranscript.dev V2 API. Supports captions, ASR audio transcription, batch processing (up to 100 videos), translation to 100+ languages, and multiple output formats. Use when working with YouTube videos, subtitles, captions, or video-to-text conversion.
+description: Extract, transcribe, and translate YouTube video transcripts using the YouTubeTranscript.dev V2 API. Supports captions, ASR audio transcription, batch processing (up to 3,000 videos, depending on plan), translation to 100+ languages, and multiple output formats. Use when working with YouTube videos, subtitles, captions, or video-to-text conversion.
 license: MIT
 compatibility: Requires network access to youtubetranscript.dev API. Works with any language or runtime that can make HTTP requests.
 metadata:
@@ -34,7 +34,7 @@ Users can get a free API key at [youtubetranscript.dev](https://youtubetranscrip
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/v2/transcribe` | Extract transcript from a single video |
-| `POST` | `/api/v2/batch` | Extract transcripts from up to 100 videos |
+| `POST` | `/api/v2/batch` | Extract transcripts from many videos (Free 10, Basic 500, Pro 1,500, Business 3,000) |
 | `GET`  | `/api/v2/jobs/{job_id}` | Check status of an ASR job |
 | `GET`  | `/api/v2/batch/{batch_id}` | Check status of a batch request |
 
@@ -43,11 +43,41 @@ Users can get a free API key at [youtubetranscript.dev](https://youtubetranscrip
 | Field | Required | Description |
 |-------|----------|-------------|
 | `video` | Yes (single) | YouTube URL or 11-character video ID |
-| `video_ids` | Yes (batch) | Array of IDs or URLs (up to 100) |
-| `language` | No | ISO 639-1 code (e.g., `"es"`, `"fr"`). Omit for best available |
-| `source` | No | `auto` (default), `manual`, or `asr` |
-| `format` | No | `timestamp`, `paragraphs`, or `words` |
-| `webhook_url` | No | URL for async delivery (required for `source="asr"`) |
+| `video_ids` | Yes (batch) | Array of IDs or URLs. Per request: Free 10 · Basic 500 · Pro 1,500 · Business 3,000 |
+| `language` | No | ISO 639-1 code (e.g., `"es"`, `"fr"`). Omit to get the original language. Check `transcript.language` for what you got |
+| `format` | No | Object of switches: `{"timestamp": true, "paragraphs": true, "words": true}`. `timestamp` adds `segments` |
+| `mode` | No | `auto` (captions, then ASR if none), `captions_only`, `human_captions_only`, or `speech_to_text_only` (always ASR). When omitted, your account default from the dashboard applies |
+| `webhook_url` | No | URL that receives ASR results. Optional with `mode`: you can poll `GET /jobs/{job_id}` instead |
+| `source` / `allow_asr` | No | Legacy, still supported. Use `mode` instead (don't combine them) |
+
+### Response Shape
+
+```json
+{
+  "request_id": "80230632-…",
+  "status": "completed",
+  "data": {
+    "video_id": "UF8uR6Z6KLc",
+    "video_title": "Steve Jobs' 2005 Stanford Commencement Address",
+    "transcript": {
+      "text": "This program is brought to you by Stanford University. …",
+      "language": "en",
+      "source": "manual",
+      "segments": [
+        { "text": "This program is brought to you by Stanford University.", "start": 7470, "end": 10369 }
+      ]
+    }
+  },
+  "credits_used": 1
+}
+```
+
+- The transcript lives at `data.transcript`. It's an object, not a list.
+- `data.transcript.text` is the full text, always included.
+- `data.transcript.segments` is only included when you send `"format": {"timestamp": true}`.
+- ⚠️ **`start` and `end` are in milliseconds.** Divide by 1000 for seconds (`7470` → 0:07).
+- `transcript.language` is the language you actually got. `transcript.source` is `manual`, `auto`, or `asr`.
+- `status` is `completed`, `processing` (async ASR: poll `job_id`), `failed`, or `requires_asr_confirmation`.
 
 ### Credit Costs
 
@@ -72,12 +102,13 @@ response = requests.post(
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
     },
-    json={"video": "dQw4w9WgXcQ"}
+    json={"video": "dQw4w9WgXcQ", "format": {"timestamp": True}},
 )
 
-data = response.json()
-for segment in data["data"]["transcript"]:
-    print(f"[{segment['start']:.1f}s] {segment['text']}")
+transcript = response.json()["data"]["transcript"]
+for segment in transcript["segments"]:
+    seconds = segment["start"] / 1000  # start is in milliseconds
+    print(f"[{seconds:.1f}s] {segment['text']}")
 ```
 
 ### Basic Transcript Extraction (JavaScript/Node.js)
@@ -93,7 +124,7 @@ const response = await fetch("https://www.youtubetranscript.dev/api/v2/transcrib
 });
 
 const { data } = await response.json();
-console.log(data.transcript);
+console.log(data.transcript.text);
 ```
 
 ### Using the Node.js SDK
@@ -116,7 +147,7 @@ const translated = await yt.transcribe({
   language: "es",
 });
 
-// Batch (up to 100 videos)
+// Batch (many videos in one request)
 const batch = await yt.batch({
   video_ids: ["dQw4w9WgXcQ", "jNQXAC9IVRw", "9bZkp7q19f0"],
 });
@@ -131,7 +162,7 @@ curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -d '{"video": "dQw4w9WgXcQ"}'
 ```
 
-### Batch Processing (up to 100 videos)
+### Batch Processing
 
 ```bash
 curl -X POST https://www.youtubetranscript.dev/api/v2/batch \
@@ -153,18 +184,20 @@ curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
 
 ### ASR Transcription (videos without captions)
 
-For videos that don't have captions, use ASR with a webhook:
+For videos that don't have captions, use ASR:
 
 ```bash
 curl -X POST https://www.youtubetranscript.dev/api/v2/transcribe \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"video": "VIDEO_ID", "source": "asr", "webhook_url": "https://yoursite.com/webhook"}'
+  -d '{"video": "VIDEO_ID", "mode": "speech_to_text_only"}'
 ```
 
-This returns immediately with `status: "processing"`. Results are delivered to the webhook URL when ready. Poll with `GET /api/v2/jobs/{job_id}` if not using webhooks.
+This returns immediately with `status: "processing"` and a `job_id`. Poll `GET /api/v2/jobs/{job_id}` until `status` is `completed`, or add `"webhook_url"` to have the result POSTed to you.
 
 ## Error Handling
+
+Errors return JSON like `{"error": "invalid_api_key", "message": "…"}`.
 
 | HTTP Status | Error Code | Description |
 |-------------|------------|-------------|
@@ -178,7 +211,10 @@ This returns immediately with `status: "processing"`. Results are delivered to t
 
 - Always ask the user for their API key if they haven't provided one. Free keys are available at [youtubetranscript.dev](https://youtubetranscript.dev).
 - Omitting the `language` parameter returns the best available transcript without translation (saves credits).
-- ASR is async — always use a webhook URL or poll the jobs endpoint.
+- Segment `start` and `end` are in **milliseconds**. Divide by 1000 before showing timestamps or building YouTube `?t=` links.
+- Timed segments only come back when you send `"format": {"timestamp": true}`. Otherwise use `data.transcript.text`.
+- ASR is async — poll the jobs endpoint or use a webhook URL.
+- `mode: "auto"` and `mode: "speech_to_text_only"` can charge ASR credits. Use `"mode": "captions_only"` to make sure a request never does.
 - Batch endpoint accepts both YouTube URLs and 11-character video IDs.
 - Re-fetching an already-owned transcript costs 0 credits.
 
