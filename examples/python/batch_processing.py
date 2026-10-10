@@ -1,7 +1,10 @@
 """
 Batch Transcript Extraction (V2 API)
 ======================================
-Extract transcripts from up to 100 videos in a single request.
+Extract transcripts from many videos in a single request.
+
+Batch size depends on your plan: Free 10, Basic 500, Pro 1,500,
+Business 3,000 videos per request.
 
 Get your free API key at: https://youtubetranscript.dev
 
@@ -10,7 +13,6 @@ Requirements:
 """
 
 import requests
-import json
 import time
 
 API_KEY = "your_api_key_here"  # Get yours at https://youtubetranscript.dev
@@ -19,7 +21,7 @@ BASE_URL = "https://www.youtubetranscript.dev/api/v2"
 
 def batch_transcribe(video_ids: list) -> dict:
     """
-    Extract transcripts from multiple videos (up to 100).
+    Submit a batch of videos.
 
     Args:
         video_ids: List of YouTube URLs or 11-character video IDs
@@ -47,7 +49,6 @@ def check_batch_status(batch_id: str) -> dict:
 
 
 def main():
-    # Example: batch of 5 videos
     video_ids = [
         "dQw4w9WgXcQ",
         "https://www.youtube.com/watch?v=jNQXAC9IVRw",
@@ -56,40 +57,27 @@ def main():
 
     print(f"Submitting batch of {len(video_ids)} videos...\n")
 
-    result = batch_transcribe(video_ids)
+    batch = batch_transcribe(video_ids)
+    print(f"Batch ID: {batch['batch_id']}")
 
-    if result.get("batch_id"):
-        # Some results may be cached (returned immediately),
-        # others may need processing
-        batch_id = result["batch_id"]
-        print(f"Batch ID: {batch_id}")
+    # Cached videos come back right away; the rest finish in the background.
+    while batch["status"] == "processing":
+        summary = batch.get("summary", {})
+        print(f"  Processing... {summary.get('succeeded', 0)}/{summary.get('total', len(video_ids))} done")
+        time.sleep(5)
+        batch = check_batch_status(batch["batch_id"])
 
-        # Check for immediately available results
-        if result.get("completed"):
-            for video in result["completed"]:
-                text_preview = " ".join(
-                    seg["text"] for seg in video["transcript"][:3]
-                )
-                print(f"  ✅ {video['video_id']}: {text_preview}...")
+    print(f"\nBatch {batch['status']}\n")
 
-        # Poll for remaining results if needed
-        if result.get("status") == "processing":
-            print("\nWaiting for remaining videos...")
-            while True:
-                time.sleep(5)
-                status = check_batch_status(batch_id)
-                print(f"  Status: {status['status']} ({status.get('completed_count', 0)}/{len(video_ids)})")
-                if status["status"] == "completed":
-                    break
+    # Each result has the same shape as a single /transcribe response.
+    for item in batch.get("results", []):
+        if item["status"] == "completed":
+            text = item["data"]["transcript"]["text"]
+            print(f"  ✅ {item['video_id']}: {len(text.split())} words")
+        else:
+            print(f"  ❌ {item['video_id']}: {item['status']} {item.get('error') or ''}")
 
-            print("\nAll transcripts ready!")
-    else:
-        # All results returned immediately (all cached)
-        for video in result.get("data", []):
-            word_count = sum(len(seg["text"].split()) for seg in video["transcript"])
-            print(f"  ✅ {video['video_id']}: {word_count} words")
-
-    print("\nDone!")
+    print(f"\nCredits used: {batch.get('credits_used')}")
 
 
 if __name__ == "__main__":
